@@ -37,6 +37,7 @@ class MyApp : Application() {
             }
             single { RemindersLocalRepository(get()) }
             single { LocalDB.createRemindersDao(this@MyApp) }
+            single<ReminderDataSource> { RemindersLocalRepository(get()) }
         }
 
         startKoin {

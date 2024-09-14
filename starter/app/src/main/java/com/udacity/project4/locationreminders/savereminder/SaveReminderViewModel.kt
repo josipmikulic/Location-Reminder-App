@@ -20,7 +20,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val selectedPOI = MutableLiveData<PointOfInterest>()
     val latitude = MutableLiveData<Double>()
     val longitude = MutableLiveData<Double>()
-
+    val reminder = MutableLiveData<ReminderDataItem?>()
     /**
      * Clear the live data objects to start fresh next time the view model gets called
      */
@@ -36,9 +36,33 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     /**
      * Validate the entered data then saves the reminder data to the DataSource
      */
-    fun validateAndSaveReminder(reminderData: ReminderDataItem) {
+    fun validateAndSaveReminder() {
+        val reminderData = ReminderDataItem(
+            reminderTitle.value,
+            reminderDescription.value,
+            reminderSelectedLocationStr.value,
+            latitude.value,
+            longitude.value
+        )
         if (validateEnteredData(reminderData)) {
             saveReminder(reminderData)
+            reminder.value = reminderData
+        }
+    }
+
+    fun onLocationPermissionResult(isGranted: Boolean) {
+        if (isGranted) {
+            showSnackBarInt.value = R.string.select_poi
+        } else {
+            showSnackBarInt.value = R.string.permission_denied_explanation
+        }
+    }
+
+    fun onSaveButtonClicked() {
+        selectedPOI.value?.let {
+            reminderSelectedLocationStr.value = it.name
+            latitude.value = it.latLng.latitude
+            longitude.value = it.latLng.longitude
         }
     }
 
@@ -70,6 +94,11 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     private fun validateEnteredData(reminderData: ReminderDataItem): Boolean {
         if (reminderData.title.isNullOrEmpty()) {
             showSnackBarInt.value = R.string.err_enter_title
+            return false
+        }
+
+        if (reminderData.description.isNullOrEmpty()) {
+            showSnackBarInt.value = R.string.err_enter_description
             return false
         }
 
