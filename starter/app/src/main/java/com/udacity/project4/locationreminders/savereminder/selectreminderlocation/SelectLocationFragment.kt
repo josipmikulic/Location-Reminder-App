@@ -3,7 +3,6 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -23,6 +22,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -94,7 +94,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map = googleMap
         setMapStyle()
         checkForLocationPermission()
-        checkForBackgroundPermission()
+        setMapClickListener()
         setPoiClickListener()
     }
 
@@ -146,16 +146,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    private fun checkForBackgroundPermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
-        val isPermissionGranted =
-            ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED
-        if (!isPermissionGranted) {
-            backgroundRequestPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-        }
-    }
-
     @SuppressLint("MissingPermission")
     private fun enableLocationAndZoomToUser() {
         map.isMyLocationEnabled = true
@@ -168,7 +158,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setMapClickListener() {
+        map.setOnMapClickListener { latLng ->
+            val name = resources.getString(R.string.lat_long_snippet, latLng.latitude, latLng.longitude)
+            poiMarker?.remove()
+            poiMarker = map.addMarker(
+                MarkerOptions().position(latLng)
+                    .title(name)
+            )
+            _viewModel.selectedPOI.value = PointOfInterest(latLng, latLng.toString(), name)
+            binding.buttonSave.isEnabled = poiMarker != null
+        }
+    }
+
     private fun setPoiClickListener() {
+
         map.setOnPoiClickListener { poi ->
             poiMarker?.remove()
             poiMarker = map.addMarker(
@@ -184,13 +188,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private val locationRequestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                checkForBackgroundPermission()
                 enableLocationAndZoomToUser()
             } else {
                 _viewModel.onLocationPermissionResult(isGranted)
             }
         }
-
-    private val backgroundRequestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 }

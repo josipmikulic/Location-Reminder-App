@@ -58,6 +58,14 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         }
     }
 
+    fun onBackgroundLocationPermissionResult(isGranted: Boolean) {
+        if (isGranted) {
+            validateAndSaveReminder()
+        } else {
+            showSnackBarInt.value = R.string.background_permission_denied_explanation
+        }
+    }
+
     fun onSaveButtonClicked() {
         selectedPOI.value?.let {
             reminderSelectedLocationStr.value = it.name
