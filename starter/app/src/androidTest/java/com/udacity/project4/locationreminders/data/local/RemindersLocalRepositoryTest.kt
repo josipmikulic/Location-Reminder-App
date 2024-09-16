@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -69,6 +70,41 @@ class RemindersLocalRepositoryTest {
         assertThat(result.data.title, `is`("title"))
         assertThat(result.data.description, `is`("description"))
         assertThat(result.data.location, `is`("Googleplex"))
+    }
+
+    @Test
+    fun getReminder_returnsErrorWhenReminderNotFound() = runBlocking {
+        // GIVEN - empty database (or reminder with id not in database)
+
+        // WHEN - Reminder retrieved by ID
+        val result = localDataSource.getReminder("Any_String_ID")
+
+        // THEN - Result returns error
+        assertThat(result, `is`(instanceOf(Result.Error::class.java)))
+        result as Result.Error
+        assertThat(result.message, `is`("Reminder not found!"))
+    }
+
+    @Test
+    fun deleteAllReminders_clearsDatabase() = runBlocking {
+        // GIVEN - reminders in database
+        val newReminder = ReminderDTO("title", "description", "Googleplex", 37.422131, -122.084801)
+        localDataSource.saveReminder(newReminder)
+
+        // assert database not empty
+        var result = localDataSource.getReminders()
+        assertThat(result, `is`(instanceOf(Result.Success::class.java)))
+        result as Result.Success
+        assertTrue(result.data.isNotEmpty())
+
+        // WHEN - deleteAllReminders called
+        localDataSource.deleteAllReminders()
+
+        // THEN - reminders database is empty
+        result = localDataSource.getReminders()
+        assertThat(result, `is`(instanceOf(Result.Success::class.java)))
+        result as Result.Success
+        assertTrue(result.data.isEmpty())
     }
 
 }

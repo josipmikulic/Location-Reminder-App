@@ -12,7 +12,6 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.project4.R
@@ -22,13 +21,13 @@ import com.udacity.project4.locationreminders.data.local.RemindersLocalRepositor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.java.KoinJavaComponent.inject
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -38,6 +37,7 @@ import org.mockito.Mockito.verify
 @MediumTest
 class ReminderListFragmentTest {
 
+    private val viewModel: RemindersListViewModel by inject(RemindersListViewModel::class.java)
     private lateinit var dataSource: RemindersLocalRepository
     private lateinit var database: RemindersDatabase
 

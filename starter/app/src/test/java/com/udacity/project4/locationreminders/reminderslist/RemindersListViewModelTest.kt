@@ -6,8 +6,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.pauseDispatcher
+import kotlinx.coroutines.test.resumeDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
@@ -67,6 +71,31 @@ class RemindersListViewModelTest {
         assertThat(value?.getOrNull(0), `is`(reminderData1))
         assertThat(value?.getOrNull(1), `is`(reminderData2))
         assertThat(value?.getOrNull(2), `is`(reminderData3))
+    }
+
+    @Test
+    fun loadReminders_showsLoading() = mainCoroutineRule.runBlockingTest {
+        mainCoroutineRule.pauseDispatcher()
+
+        //WHEN
+        remindersListViewModel.loadReminders()
+
+        // THEN
+        assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(true))
+        mainCoroutineRule.resumeDispatcher()
+        assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(false))
+    }
+
+    @Test
+    fun loadRemindersError_showsSnackbar() = mainCoroutineRule.runBlockingTest {
+        // GIVEN
+        dataSource.setReturnError(true)
+
+        // WHEN
+        remindersListViewModel.loadReminders()
+
+        // THEN
+        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), `is`("Test error"))
     }
 
     val reminder1 = ReminderDTO("title1", "description1", "Googleplex1", 37.422131, -122.084801)
