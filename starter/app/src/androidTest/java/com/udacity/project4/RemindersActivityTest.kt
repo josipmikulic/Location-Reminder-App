@@ -9,10 +9,13 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.google.android.material.internal.ContextUtils.getActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -22,8 +25,9 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -95,9 +99,8 @@ class RemindersActivityTest :
         IdlingRegistry.getInstance().register(dataBindingIdlingResource)
     }
 
-    @ExperimentalCoroutinesApi
     @Test
-    fun reminderSaved_snackbarShown() = runBlocking {
+    fun reminderSaved_toastShown() = runBlocking {
         // GIVEN
         val scenario = ActivityScenario.launch(RemindersActivity::class.java)
         dataBindingIdlingResource.monitorActivity(scenario)
@@ -108,12 +111,15 @@ class RemindersActivityTest :
         onView(withId(R.id.reminderDescription)).perform(typeText("description"), closeSoftKeyboard())
         onView(withId(R.id.selectLocation)).perform(click())
         onView(withId(R.id.map_view)).perform(click())
+
         onView(withId(R.id.button_save)).perform(click())
 
         onView(withId(R.id.saveReminder)).perform(click())
 
         // THEN
-        onView(withId(com.google.android.material.R.id.snackbar_text)).check(matches(isDisplayed()))
+        onView(withText(R.string.reminder_saved)).inRoot(
+            withDecorView(not(`is`(getActivity(appContext)?.window?.decorView)))
+        ).check(matches(isDisplayed()))
 
         scenario.close()
     }
