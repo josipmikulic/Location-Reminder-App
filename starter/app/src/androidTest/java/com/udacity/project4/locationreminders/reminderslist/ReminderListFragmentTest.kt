@@ -44,7 +44,6 @@ import org.mockito.Mockito.verify
 @MediumTest
 class ReminderListFragmentTest {
 
-    private val dataBindingIdlingResource = DataBindingIdlingResource()
     private lateinit var dataSource: ReminderDataSource
     private lateinit var database: RemindersDatabase
 
